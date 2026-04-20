@@ -261,22 +261,26 @@ function startUploads() {
       // Log to GAS via doPost
       if (gasUrl) {
         try {
-          fetch(gasUrl, {
-            method: "POST",
-            mode: "no-cors",
-            headers: { "Content-Type": "text/plain" },
-            body: JSON.stringify({
-              action: "log_upload",
-              filename: item.name,
-              department: uploadData.department,
-              fileType: uploadData.fileType,
-              driveFileId: fileId,
-              uploader: uploadData.uploader,
-              uploaderEmail: uploadData.uploaderEmail,
-              extraFields: uploadData.extras || {},
-              ccSelf: uploadData.ccSelf
-            })
+          var logPayload = JSON.stringify({
+            action: "log_upload",
+            filename: item.name,
+            department: uploadData.department,
+            fileType: uploadData.fileType,
+            driveFileId: fileId,
+            uploader: uploadData.uploader,
+            uploaderEmail: uploadData.uploaderEmail,
+            extraFields: uploadData.extras || {},
+            ccSelf: uploadData.ccSelf
           });
+          // Use sendBeacon for reliable cross-origin POST to GAS
+          var sent = navigator.sendBeacon(gasUrl, new Blob([logPayload], {type: "application/json"}));
+          if (!sent) {
+            // Fallback: hidden form POST
+            var f = document.createElement("form");
+            f.method = "POST"; f.action = gasUrl; f.target = "_blank"; f.style.display = "none";
+            var inp = document.createElement("input"); inp.name = "payload"; inp.value = logPayload;
+            f.appendChild(inp); document.body.appendChild(f); f.submit(); f.remove();
+          }
         } catch(e) { console.warn("Log callback failed:", e); }
       }
 
