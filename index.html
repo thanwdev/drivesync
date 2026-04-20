@@ -49,31 +49,32 @@ var uploadData = null;
 var files = [];
 var fileItems = [];
 var CHUNK_SIZE = 10 * 1024 * 1024; // 10MB chunks for resumable upload
+var configReceived = false;
 
-// Read upload config from opener's sessionStorage
-try {
-  uploadData = JSON.parse(window.opener.sessionStorage.getItem("ds_upload"));
-  var filesInfo = JSON.parse(window.opener.sessionStorage.getItem("ds_files_info"));
-  if (filesInfo) {
-    filesInfo.forEach(function(f, i) {
+// Show waiting state
+document.getElementById("fileList").innerHTML = '<div style="text-align:center;padding:40px;color:#6b8a5a">Waiting for files from DriveSync...</div>';
+
+// Tell parent we're ready to receive data
+if (window.opener) window.opener.postMessage("ready", "*");
+
+// Receive config + files from parent via postMessage (cross-origin safe)
+window.addEventListener("message", function(ev) {
+  if (ev.data && ev.data.type === "config") {
+    uploadData = ev.data.data;
+    // Build file items from config
+    (uploadData.files || []).forEach(function(f, i) {
       fileItems.push({
         name: f.name, size: f.size, type: f.type,
         file: null, status: "waiting", progress: 0, speed: 0, driveFileId: null
       });
     });
+    configReceived = true;
     renderFiles();
   }
-} catch(e) {
-  document.getElementById("fileList").textContent = "Error: Could not read upload data. Make sure popups are allowed.";
-}
-
-// Tell parent we're ready to receive files
-if (window.opener) window.opener.postMessage("ready", "*");
-
-// Receive files from parent
-window.addEventListener("message", function(ev) {
   if (ev.data && ev.data.type === "file") {
-    fileItems[ev.data.index].file = ev.data.file;
+    if (fileItems[ev.data.index]) {
+      fileItems[ev.data.index].file = ev.data.file;
+    }
   }
   if (ev.data && ev.data.type === "start") {
     startUploads();
