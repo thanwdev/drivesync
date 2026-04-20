@@ -1,16 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>DriveSync — Uploading</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{min-height:100vh;background:#0d1a08;color:#e2f0d9;font-family:"Plus Jakarta Sans",sans-serif;padding:32px}
-.header{text-align:center;margin-bottom:32px}
+.header{text-align:center;margin-bottom:20px}
 .header h1{font-size:22px;font-weight:800;color:#61c230;letter-spacing:-.5px}
 .header p{font-size:13px;color:#6b8a5a;margin-top:4px}
+.speed-tip{max-width:540px;margin:0 auto 24px;background:#162210;border:1px solid #2a3e1e;border-radius:10px;padding:14px 18px;font-size:12px;color:#6b8a5a;line-height:1.7}
+.speed-tip strong{color:#b8d4a8;font-weight:600}
+.speed-tip .speeds{display:flex;gap:16px;margin-top:8px;flex-wrap:wrap}
+.speed-tip .spd{display:flex;align-items:center;gap:6px}
+.speed-tip .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.speed-tip .fast{background:#61c230}.speed-tip .med{background:#f59e0b}.speed-tip .slow{background:#f87171}
 .file-list{display:flex;flex-direction:column;gap:10px;max-width:540px;margin:0 auto}
 .file-item{background:#162210;border:1px solid #2a3e1e;border-radius:12px;padding:16px 20px}
 .file-item.uploading{border-color:#61c230;background:rgba(97,194,48,.08)}
@@ -21,9 +26,7 @@ body{min-height:100vh;background:#0d1a08;color:#e2f0d9;font-family:"Plus Jakarta
 .file-name{font-family:"JetBrains Mono",monospace;font-size:12px;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .file-size{font-size:11px;color:#6b8a5a;flex-shrink:0}
 .file-status{font-size:11px;font-weight:700;flex-shrink:0;min-width:70px;text-align:right}
-.file-status.success{color:#61c230}
-.file-status.fail{color:#f87171}
-.file-status.active{color:#7dd44e}
+.file-status.success{color:#61c230}.file-status.fail{color:#f87171}.file-status.active{color:#7dd44e}
 .progress-track{height:4px;background:#2a3e1e;border-radius:99px;overflow:hidden}
 .progress-fill{height:100%;width:0;background:linear-gradient(90deg,#61c230,#7dd44e);transition:width .2s;border-radius:99px}
 .speed-info{font-size:10px;color:#4a6338;margin-top:4px;font-family:"JetBrains Mono",monospace}
@@ -38,6 +41,14 @@ body{min-height:100vh;background:#0d1a08;color:#e2f0d9;font-family:"Plus Jakarta
   <h1>DriveSync Upload</h1>
   <p>Uploading directly to Google Drive</p>
 </div>
+<div class="speed-tip">
+  <strong>Upload speed depends on your connection type:</strong>
+  <div class="speeds">
+    <div class="spd"><div class="dot fast"></div> Wired (Ethernet) &mdash; fastest, recommended for large files</div>
+    <div class="spd"><div class="dot med"></div> Wi-Fi &mdash; moderate, suitable for most uploads</div>
+    <div class="spd"><div class="dot slow"></div> Mobile / Hotspot &mdash; slower, expect longer transfers</div>
+  </div>
+</div>
 <div class="file-list" id="fileList"></div>
 <div class="summary hidden" id="summary">
   <h2 id="sumTitle">Upload Complete</h2>
@@ -46,229 +57,121 @@ body{min-height:100vh;background:#0d1a08;color:#e2f0d9;font-family:"Plus Jakarta
 
 <script>
 var uploadData = null;
-var files = [];
 var fileItems = [];
-var CHUNK_SIZE = 10 * 1024 * 1024; // 10MB chunks for resumable upload
-var configReceived = false;
+var CHUNK_SIZE = 10 * 1024 * 1024;
 
-// Show waiting state
 document.getElementById("fileList").innerHTML = '<div style="text-align:center;padding:40px;color:#6b8a5a">Waiting for files from DriveSync...</div>';
 
-// Tell parent we're ready to receive data
 if (window.opener) window.opener.postMessage("ready", "*");
 
-// Receive config + files from parent via postMessage (cross-origin safe)
 window.addEventListener("message", function(ev) {
   if (ev.data && ev.data.type === "config") {
     uploadData = ev.data.data;
-    // Build file items from config
-    (uploadData.files || []).forEach(function(f, i) {
-      fileItems.push({
-        name: f.name, size: f.size, type: f.type,
-        file: null, status: "waiting", progress: 0, speed: 0, driveFileId: null
-      });
+    (uploadData.files || []).forEach(function(f) {
+      fileItems.push({ name: f.name, size: f.size, type: f.type, file: null, status: "waiting", progress: 0, speed: 0, driveFileId: null });
     });
-    configReceived = true;
     renderFiles();
   }
-  if (ev.data && ev.data.type === "file") {
-    if (fileItems[ev.data.index]) {
-      fileItems[ev.data.index].file = ev.data.file;
-    }
+  if (ev.data && ev.data.type === "file" && fileItems[ev.data.index]) {
+    fileItems[ev.data.index].file = ev.data.file;
   }
-  if (ev.data && ev.data.type === "start") {
-    startUploads();
-  }
+  if (ev.data && ev.data.type === "start") { startUploads(); }
 });
 
 function renderFiles() {
-  var list = document.getElementById("fileList");
-  list.innerHTML = "";
+  var list = document.getElementById("fileList"); list.innerHTML = "";
   fileItems.forEach(function(f, i) {
-    var div = document.createElement("div");
-    div.className = "file-item" + (f.status === "uploading" ? " uploading" : "") + (f.status === "done" ? " done" : "") + (f.status === "error" ? " error" : "");
-    div.id = "file-" + i;
-
     var szStr = f.size > 1073741824 ? (f.size/1073741824).toFixed(1)+" GB" : f.size > 1048576 ? (f.size/1048576).toFixed(1)+" MB" : (f.size/1024).toFixed(0)+" KB";
-    var icon = f.status === "done" ? "\u2705" : f.status === "error" ? "\u274C" : f.status === "uploading" ? "\u23F3" : "\uD83D\uDCC4";
-    var statusTxt = f.status === "done" ? "Done" : f.status === "error" ? "Failed" : f.status === "uploading" ? Math.round(f.progress)+"%" : "Waiting";
-    var statusCls = f.status === "done" ? "success" : f.status === "error" ? "fail" : f.status === "uploading" ? "active" : "";
-
+    var icon = f.status==="done"?"\u2705":f.status==="error"?"\u274C":f.status==="uploading"?"\u23F3":"\uD83D\uDCC4";
+    var statusTxt = f.status==="done"?"Done":f.status==="error"?"Failed":f.status==="uploading"?Math.round(f.progress)+"%":"Waiting";
+    var statusCls = f.status==="done"?"success":f.status==="error"?"fail":f.status==="uploading"?"active":"";
+    var div = document.createElement("div"); div.className = "file-item"+(f.status==="uploading"?" uploading":"")+(f.status==="done"?" done":"")+(f.status==="error"?" error":"");
     var top = document.createElement("div"); top.className = "file-top";
     var ic = document.createElement("div"); ic.className = "file-icon"; ic.textContent = icon; top.appendChild(ic);
     var nm = document.createElement("div"); nm.className = "file-name"; nm.textContent = f.name; top.appendChild(nm);
     var sz = document.createElement("div"); sz.className = "file-size"; sz.textContent = szStr; top.appendChild(sz);
-    var st = document.createElement("div"); st.className = "file-status " + statusCls; st.textContent = statusTxt; top.appendChild(st);
+    var st = document.createElement("div"); st.className = "file-status "+statusCls; st.textContent = statusTxt; top.appendChild(st);
     div.appendChild(top);
-
-    if (f.status === "uploading") {
+    if (f.status==="uploading") {
       var track = document.createElement("div"); track.className = "progress-track";
-      var fill = document.createElement("div"); fill.className = "progress-fill"; fill.style.width = f.progress + "%";
+      var fill = document.createElement("div"); fill.className = "progress-fill"; fill.style.width = f.progress+"%";
       track.appendChild(fill); div.appendChild(track);
-      if (f.speed > 0) {
-        var spd = document.createElement("div"); spd.className = "speed-info";
-        spd.textContent = formatSpeed(f.speed);
-        div.appendChild(spd);
-      }
+      if (f.speed > 0) { var spd = document.createElement("div"); spd.className = "speed-info"; spd.textContent = (f.speed>1048576?(f.speed/1048576).toFixed(1)+" MB/s":(f.speed/1024).toFixed(0)+" KB/s"); div.appendChild(spd); }
     }
     list.appendChild(div);
   });
 }
 
-function formatSpeed(bytesPerSec) {
-  if (bytesPerSec > 1048576) return (bytesPerSec / 1048576).toFixed(1) + " MB/s";
-  if (bytesPerSec > 1024) return (bytesPerSec / 1024).toFixed(0) + " KB/s";
-  return bytesPerSec + " B/s";
-}
-
-// ── Resumable upload to Drive API ────────────────────────────
 function resumableUpload(file, folderId, token, onProgress) {
   return new Promise(function(resolve, reject) {
-    // Step 1: Initiate resumable session
-    var xhr1 = new XMLHttpRequest();
-    xhr1.open("POST", "https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&supportsAllDrives=true");
-    xhr1.setRequestHeader("Authorization", "Bearer " + token);
-    xhr1.setRequestHeader("Content-Type", "application/json; charset=UTF-8");
-    xhr1.setRequestHeader("X-Upload-Content-Type", file.type || "application/octet-stream");
-    xhr1.setRequestHeader("X-Upload-Content-Length", file.size);
-    xhr1.onload = function() {
-      if (xhr1.status !== 200) { reject(new Error("Init failed: " + xhr1.status)); return; }
-      var uploadUrl = xhr1.getResponseHeader("Location");
+    var x1 = new XMLHttpRequest();
+    x1.open("POST", "https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&supportsAllDrives=true");
+    x1.setRequestHeader("Authorization", "Bearer " + token);
+    x1.setRequestHeader("Content-Type", "application/json; charset=UTF-8");
+    x1.setRequestHeader("X-Upload-Content-Type", file.type || "application/octet-stream");
+    x1.setRequestHeader("X-Upload-Content-Length", file.size);
+    x1.onload = function() {
+      if (x1.status !== 200) { reject(new Error("Init failed: " + x1.status)); return; }
+      var uploadUrl = x1.getResponseHeader("Location");
       if (!uploadUrl) { reject(new Error("No upload URL")); return; }
-
-      // Step 2: Upload file content (single PUT for files < 10MB, chunked for larger)
       if (file.size <= CHUNK_SIZE) {
-        // Single request upload
-        var xhr2 = new XMLHttpRequest();
-        xhr2.open("PUT", uploadUrl);
-        xhr2.setRequestHeader("Content-Type", file.type || "application/octet-stream");
-        xhr2.upload.onprogress = function(ev) {
-          if (ev.lengthComputable && onProgress) onProgress(ev.loaded / ev.total * 100, ev.loaded);
-        };
-        xhr2.onload = function() {
-          if (xhr2.status >= 200 && xhr2.status < 300) {
-            try { resolve(JSON.parse(xhr2.responseText).id); } catch(e) { resolve(null); }
-          } else { reject(new Error("Upload failed: " + xhr2.status)); }
-        };
-        xhr2.onerror = function() { reject(new Error("Network error")); };
-        xhr2.send(file);
+        var x2 = new XMLHttpRequest(); x2.open("PUT", uploadUrl);
+        x2.setRequestHeader("Content-Type", file.type || "application/octet-stream");
+        x2.upload.onprogress = function(ev) { if (ev.lengthComputable && onProgress) onProgress(ev.loaded / ev.total * 100, ev.loaded); };
+        x2.onload = function() { if (x2.status >= 200 && x2.status < 300) { try { resolve(JSON.parse(x2.responseText).id); } catch(e) { resolve(null); } } else { reject(new Error("Upload failed: " + x2.status)); } };
+        x2.onerror = function() { reject(new Error("Network error")); };
+        x2.send(file);
       } else {
-        // Chunked resumable upload
         var offset = 0;
-        var startTime = Date.now();
-
         function sendChunk() {
           var end = Math.min(offset + CHUNK_SIZE, file.size);
           var chunk = file.slice(offset, end);
           var isLast = (end === file.size);
-          var contentRange = "bytes " + offset + "-" + (end - 1) + "/" + (isLast ? file.size : "*");
-
-          var xhr = new XMLHttpRequest();
-          xhr.open("PUT", uploadUrl);
-          xhr.setRequestHeader("Content-Range", contentRange);
-
-          xhr.upload.onprogress = function(ev) {
-            if (ev.lengthComputable && onProgress) {
-              var totalUploaded = offset + ev.loaded;
-              var pct = totalUploaded / file.size * 100;
-              onProgress(pct, totalUploaded);
-            }
+          var cr = "bytes " + offset + "-" + (end-1) + "/" + (isLast ? file.size : "*");
+          var x = new XMLHttpRequest(); x.open("PUT", uploadUrl);
+          x.setRequestHeader("Content-Range", cr);
+          x.upload.onprogress = function(ev) { if (ev.lengthComputable && onProgress) onProgress((offset + ev.loaded) / file.size * 100, offset + ev.loaded); };
+          x.onload = function() {
+            if (x.status === 200 || x.status === 201) { try { resolve(JSON.parse(x.responseText).id); } catch(e) { resolve(null); } }
+            else if (x.status === 308) { offset = end; sendChunk(); }
+            else { reject(new Error("Chunk failed: " + x.status)); }
           };
-
-          xhr.onload = function() {
-            if (xhr.status === 200 || xhr.status === 201) {
-              // Done
-              try { resolve(JSON.parse(xhr.responseText).id); } catch(e) { resolve(null); }
-            } else if (xhr.status === 308) {
-              // Chunk accepted, continue
-              offset = end;
-              sendChunk();
-            } else {
-              reject(new Error("Chunk failed: " + xhr.status));
-            }
-          };
-          xhr.onerror = function() { reject(new Error("Network error at offset " + offset)); };
-          xhr.send(chunk);
+          x.onerror = function() { reject(new Error("Network error at " + offset)); };
+          x.send(chunk);
         }
         sendChunk();
       }
     };
-    xhr1.onerror = function() { reject(new Error("Network error on init")); };
-    xhr1.send(JSON.stringify({ name: file.name, parents: [folderId] }));
+    x1.onerror = function() { reject(new Error("Network error on init")); };
+    x1.send(JSON.stringify({ name: file.name, parents: [folderId] }));
   });
 }
 
-// ── Upload orchestrator ──────────────────────────────────────
 function startUploads() {
-  if (!uploadData || !uploadData.token || !uploadData.folderId) {
-    if (window.opener) window.opener.postMessage({ type: "error", message: "Missing upload credentials" }, "*");
-    return;
-  }
-
-  var idx = 0;
-  var results = [];
-  var gasUrl = uploadData.gasUrl;
-
+  if (!uploadData || !uploadData.token) { if (window.opener) window.opener.postMessage({type:"error",message:"Missing credentials"},"*"); return; }
+  var idx = 0; var results = [];
   function uploadNext() {
     if (idx >= fileItems.length) {
-      // All done
       document.getElementById("summary").classList.remove("hidden");
       var doneCount = results.filter(function(r) { return r.ok; }).length;
-      document.getElementById("sumTitle").textContent = doneCount + " file" + (doneCount > 1 ? "s" : "") + " uploaded";
+      document.getElementById("sumTitle").textContent = doneCount + " file" + (doneCount>1?"s":"") + " uploaded";
       document.getElementById("sumSub").textContent = "Closing in 3 seconds...";
-
-      if (window.opener) {
-        window.opener.postMessage({ type: "complete", results: results }, "*");
-        setTimeout(function() { window.close(); }, 3000);
-      }
+      if (window.opener) { window.opener.postMessage({type:"complete",results:results},"*"); setTimeout(function(){window.close()},3000); }
       return;
     }
-
     var item = fileItems[idx];
-    if (!item.file) {
-      // File not received yet, skip
-      item.status = "error";
-      results.push({ ok: false, filename: item.name, error: "File not received" });
-      renderFiles();
-      idx++;
-      uploadNext();
-      return;
-    }
-
-    item.status = "uploading";
-    item.progress = 0;
-    var startTime = Date.now();
-    renderFiles();
-
-    resumableUpload(
-      item.file,
-      uploadData.folderId,
-      uploadData.token,
-      function(pct, bytesUploaded) {
-        item.progress = pct;
-        var elapsed = (Date.now() - startTime) / 1000;
-        item.speed = elapsed > 0 ? bytesUploaded / elapsed : 0;
-        renderFiles();
-      }
-    ).then(function(fileId) {
-      item.status = "done";
-      item.progress = 100;
-      item.driveFileId = fileId;
-      var driveLink = fileId ? "https://drive.google.com/file/d/" + fileId + "/view" : "";
-      results.push({ ok: true, filename: item.name, driveLink: driveLink, driveFileId: fileId });
-      renderFiles();
-
-      idx++;
-      uploadNext();
+    if (!item.file) { results.push({ok:false,filename:item.name,error:"Not received"}); renderFiles(); idx++; uploadNext(); return; }
+    item.status = "uploading"; item.progress = 0; var startTime = Date.now(); renderFiles();
+    resumableUpload(item.file, uploadData.folderId, uploadData.token, function(pct, bytes) {
+      item.progress = pct; var elapsed = (Date.now()-startTime)/1000; item.speed = elapsed>0?bytes/elapsed:0; renderFiles();
+    }).then(function(fileId) {
+      item.status = "done"; item.progress = 100; item.driveFileId = fileId;
+      results.push({ok:true, filename:item.name, driveLink:fileId?"https://drive.google.com/file/d/"+fileId+"/view":"", driveFileId:fileId});
+      renderFiles(); idx++; uploadNext();
     }).catch(function(err) {
-      item.status = "error";
-      results.push({ ok: false, filename: item.name, error: err.message });
-      renderFiles();
-      idx++;
-      uploadNext();
+      item.status = "error"; results.push({ok:false, filename:item.name, error:err.message}); renderFiles(); idx++; uploadNext();
     });
   }
-
   uploadNext();
 }
 </script>
