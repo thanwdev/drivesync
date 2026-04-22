@@ -6,66 +6,84 @@
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}body{min-height:100vh;background:#0d1a08;color:#e2f0d9;font-family:"Plus Jakarta Sans",sans-serif;padding:32px}
-.header{text-align:center;margin-bottom:20px}.header h1{font-size:22px;font-weight:800;color:#61c230}.header p{font-size:13px;color:#6b8a5a;margin-top:4px}
-.tip{max-width:540px;margin:0 auto 24px;background:#162210;border:1px solid #2a3e1e;border-radius:10px;padding:14px 18px;font-size:12px;color:#6b8a5a;line-height:1.7}
-.tip strong{color:#b8d4a8}.tip .speeds{display:flex;gap:16px;margin-top:8px;flex-wrap:wrap}.tip .spd{display:flex;align-items:center;gap:6px}.tip .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}.tip .fast{background:#61c230}.tip .med{background:#f59e0b}.tip .slow{background:#f87171}
-.file-list{display:flex;flex-direction:column;gap:10px;max-width:540px;margin:0 auto}
-.fi{background:#162210;border:1px solid #2a3e1e;border-radius:12px;padding:16px 20px}
-.fi.uploading{border-color:#61c230;background:rgba(97,194,48,.08)}.fi.done{border-color:#4a9a22;opacity:.7}.fi.error{border-color:#f87171}
-.fi-top{display:flex;align-items:center;gap:12px;margin-bottom:8px}
-.fi-icon{font-size:20px;width:28px;text-align:center;flex-shrink:0}.fi-name{font-family:"JetBrains Mono",monospace;font-size:12px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.fi-size{font-size:11px;color:#6b8a5a;flex-shrink:0}.fi-st{font-size:11px;font-weight:700;min-width:70px;text-align:right;flex-shrink:0}
-.fi-st.ok{color:#61c230}.fi-st.fail{color:#f87171}.fi-st.go{color:#7dd44e}
-.prog{height:4px;background:#2a3e1e;border-radius:99px;overflow:hidden}.prog-fill{height:100%;width:0;background:linear-gradient(90deg,#61c230,#7dd44e);transition:width .2s;border-radius:99px}
-.spd-info{font-size:10px;color:#4a6338;margin-top:4px;font-family:"JetBrains Mono",monospace}
-.sum{text-align:center;margin-top:24px;padding:20px;background:rgba(97,194,48,.1);border:1px solid #3a5228;border-radius:12px;max-width:540px;margin-left:auto;margin-right:auto}
-.sum h2{font-size:18px;font-weight:800;color:#61c230;margin-bottom:4px}.sum p{font-size:13px;color:#6b8a5a}.sum.hidden{display:none}
+.hdr{text-align:center;margin-bottom:20px}.hdr h1{font-size:22px;font-weight:800;color:#61c230}.hdr p{font-size:13px;color:#6b8a5a;margin-top:4px}
+.tip{max-width:540px;margin:0 auto 24px;background:#162210;border:1px solid #2a3e1e;border-radius:10px;padding:14px 18px;font-size:12px;color:#6b8a5a;line-height:1.7}.tip strong{color:#b8d4a8}.tip .speeds{display:flex;gap:16px;margin-top:8px;flex-wrap:wrap}.tip .spd{display:flex;align-items:center;gap:6px}.tip .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}.tip .f{background:#61c230}.tip .m{background:#f59e0b}.tip .s{background:#f87171}
+.fl{display:flex;flex-direction:column;gap:10px;max-width:540px;margin:0 auto}
+.fi{background:#162210;border:1px solid #2a3e1e;border-radius:12px;padding:16px 20px}.fi.up{border-color:#61c230;background:rgba(97,194,48,.08)}.fi.ok{border-color:#4a9a22;opacity:.7}.fi.err{border-color:#f87171}
+.ft{display:flex;align-items:center;gap:12px;margin-bottom:8px}.fi-i{font-size:20px;width:28px;text-align:center;flex-shrink:0}.fi-n{font-family:"JetBrains Mono",monospace;font-size:12px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.fi-s{font-size:11px;color:#6b8a5a;flex-shrink:0}.fi-st{font-size:11px;font-weight:700;min-width:80px;text-align:right;flex-shrink:0}.fi-st.g{color:#61c230}.fi-st.b{color:#f87171}.fi-st.a{color:#7dd44e}
+.pg{height:4px;background:#2a3e1e;border-radius:99px;overflow:hidden}.pg-f{height:100%;width:0;background:linear-gradient(90deg,#61c230,#7dd44e);transition:width .2s;border-radius:99px}
+.sp{font-size:10px;color:#4a6338;margin-top:4px;font-family:"JetBrains Mono",monospace}
+.sm{text-align:center;margin-top:24px;padding:20px;background:rgba(97,194,48,.1);border:1px solid #3a5228;border-radius:12px;max-width:540px;margin-left:auto;margin-right:auto}.sm h2{font-size:18px;font-weight:800;color:#61c230;margin-bottom:4px}.sm p{font-size:13px;color:#6b8a5a}.sm.h{display:none}
+.err-msg{font-size:10px;color:#f87171;margin-top:4px;font-family:"JetBrains Mono",monospace}
 </style>
 </head>
 <body>
-<div class="header"><h1>DriveSync Upload</h1><p>Uploading directly to Google Drive</p></div>
-<div class="tip"><strong>Upload speed depends on your connection:</strong><div class="speeds"><div class="spd"><div class="dot fast"></div>Wired (Ethernet) &mdash; fastest, recommended for large files</div><div class="spd"><div class="dot med"></div>Wi-Fi &mdash; moderate, suitable for most uploads</div><div class="spd"><div class="dot slow"></div>Mobile / Hotspot &mdash; slower, expect longer transfers</div></div></div>
-<div class="file-list" id="fList"><div style="text-align:center;padding:40px;color:#6b8a5a">Waiting for files...</div></div>
-<div class="sum hidden" id="sum"><h2 id="sumT">Complete</h2><p id="sumS">Closing in 3 seconds...</p></div>
+<div class="hdr"><h1>DriveSync Upload</h1><p>Uploading directly to Google Drive</p></div>
+<div class="tip"><strong>Upload speed depends on your connection:</strong><div class="speeds"><div class="spd"><div class="dot f"></div>Wired (Ethernet) — fastest</div><div class="spd"><div class="dot m"></div>Wi-Fi — moderate</div><div class="spd"><div class="dot s"></div>Mobile — slower</div></div></div>
+<div class="fl" id="fL"><div style="text-align:center;padding:40px;color:#6b8a5a">Waiting for files...</div></div>
+<div class="sm h" id="sm"><h2 id="sT">Complete</h2><p id="sS">Closing...</p></div>
 <script>
 var U=null,FI=[],CS=10*1024*1024;
 if(window.opener)window.opener.postMessage("ready","*");
 window.addEventListener("message",function(ev){
-  if(ev.data&&ev.data.type==="config"){U=ev.data.data;(U.files||[]).forEach(function(f){FI.push({name:f.name,size:f.size,type:f.type,file:null,status:"waiting",progress:0,speed:0,fid:null})});render()}
+  if(ev.data&&ev.data.type==="config"){U=ev.data.data;(U.files||[]).forEach(function(f){FI.push({name:f.name,size:f.size,type:f.type,file:null,st:"wait",p:0,sp:0,fid:null,err:""})});render()}
   if(ev.data&&ev.data.type==="file"&&FI[ev.data.index])FI[ev.data.index].file=ev.data.file;
   if(ev.data&&ev.data.type==="start")go();
 });
-function render(){var l=document.getElementById("fList");l.innerHTML="";FI.forEach(function(f){var sz=f.size>1073741824?(f.size/1073741824).toFixed(1)+" GB":f.size>1048576?(f.size/1048576).toFixed(1)+" MB":(f.size/1024).toFixed(0)+" KB";var ic=f.status==="done"?"\u2705":f.status==="error"?"\u274C":f.status==="uploading"?"\u23F3":"\uD83D\uDCC4";var st=f.status==="done"?"Done":f.status==="error"?"Failed":f.status==="uploading"?Math.round(f.progress)+"%":"Waiting";var sc=f.status==="done"?"ok":f.status==="error"?"fail":f.status==="uploading"?"go":"";var d=document.createElement("div");d.className="fi"+(f.status==="uploading"?" uploading":"")+(f.status==="done"?" done":"")+(f.status==="error"?" error":"");var t=document.createElement("div");t.className="fi-top";var i=document.createElement("div");i.className="fi-icon";i.textContent=ic;t.appendChild(i);var n=document.createElement("div");n.className="fi-name";n.textContent=f.name;t.appendChild(n);var s=document.createElement("div");s.className="fi-size";s.textContent=sz;t.appendChild(s);var x=document.createElement("div");x.className="fi-st "+sc;x.textContent=st;t.appendChild(x);d.appendChild(t);if(f.status==="uploading"){var p=document.createElement("div");p.className="prog";var b=document.createElement("div");b.className="prog-fill";b.style.width=f.progress+"%";p.appendChild(b);d.appendChild(p);if(f.speed>0){var sp=document.createElement("div");sp.className="spd-info";sp.textContent=f.speed>1048576?(f.speed/1048576).toFixed(1)+" MB/s":(f.speed/1024).toFixed(0)+" KB/s";d.appendChild(sp)}}l.appendChild(d)})}
-function resUp(file,fid,tok,onP){return new Promise(function(res,rej){var x=new XMLHttpRequest();x.open("POST","https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&supportsAllDrives=true");x.setRequestHeader("Authorization","Bearer "+tok);x.setRequestHeader("Content-Type","application/json; charset=UTF-8");x.setRequestHeader("X-Upload-Content-Type",file.type||"application/octet-stream");x.setRequestHeader("X-Upload-Content-Length",file.size);x.onload=function(){if(x.status!==200){rej(new Error("Init:"+x.status));return}var url=x.getResponseHeader("Location");if(!url){rej(new Error("No URL"));return}if(file.size<=CS){var x2=new XMLHttpRequest();x2.open("PUT",url);x2.setRequestHeader("Content-Type",file.type||"application/octet-stream");x2.upload.onprogress=function(e){if(e.lengthComputable&&onP)onP(e.loaded/e.total*100,e.loaded)};x2.onload=function(){if(x2.status>=200&&x2.status<300){try{res(JSON.parse(x2.responseText).id)}catch(e){res(null)}}else rej(new Error("Up:"+x2.status))};x2.onerror=function(){rej(new Error("Net"))};x2.send(file)}else{var off=0;function nc(){var end=Math.min(off+CS,file.size);var ch=file.slice(off,end);var last=end===file.size;var cr="bytes "+off+"-"+(end-1)+"/"+(last?file.size:"*");var xc=new XMLHttpRequest();xc.open("PUT",url);xc.setRequestHeader("Content-Range",cr);xc.upload.onprogress=function(e){if(e.lengthComputable&&onP)onP((off+e.loaded)/file.size*100,off+e.loaded)};xc.onload=function(){if(xc.status===200||xc.status===201){try{res(JSON.parse(xc.responseText).id)}catch(e){res(null)}}else if(xc.status===308){off=end;nc()}else rej(new Error("Chunk:"+xc.status))};xc.onerror=function(){rej(new Error("Net@"+off))};xc.send(ch)}nc()}};x.onerror=function(){rej(new Error("Net init"))};x.send(JSON.stringify({name:file.name,parents:[fid]}))})}
-function go(){if(!U||!U.token){if(window.opener)window.opener.postMessage({type:"error",message:"No credentials"},"*");return}var idx=0,res=[];
+function fmtSz(s){return s>1073741824?(s/1073741824).toFixed(1)+" GB":s>1048576?(s/1048576).toFixed(1)+" MB":(s/1024).toFixed(0)+" KB"}
+function render(){var l=document.getElementById("fL");l.innerHTML="";FI.forEach(function(f){
+  var ic=f.st==="ok"?"\u2705":f.st==="err"?"\u274C":f.st==="up"?"\u23F3":"\uD83D\uDCC4";
+  var stT=f.st==="ok"?"Done":f.st==="err"?"Failed":f.st==="up"?Math.round(f.p)+"%":"Waiting";
+  var stC=f.st==="ok"?"g":f.st==="err"?"b":f.st==="up"?"a":"";
+  var d=document.createElement("div");d.className="fi"+(f.st==="up"?" up":"")+(f.st==="ok"?" ok":"")+(f.st==="err"?" err":"");
+  var t=document.createElement("div");t.className="ft";
+  t.innerHTML='<div class="fi-i">'+ic+'</div><div class="fi-n">'+f.name+'</div><div class="fi-s">'+fmtSz(f.size)+'</div><div class="fi-st '+stC+'">'+stT+'</div>';
+  d.appendChild(t);
+  if(f.st==="up"){var pg=document.createElement("div");pg.className="pg";pg.innerHTML='<div class="pg-f" style="width:'+f.p+'%"></div>';d.appendChild(pg);if(f.sp>0){var sp=document.createElement("div");sp.className="sp";sp.textContent=f.sp>1048576?(f.sp/1048576).toFixed(1)+" MB/s":(f.sp/1024).toFixed(0)+" KB/s";d.appendChild(sp)}}
+  if(f.st==="err"&&f.err){var em=document.createElement("div");em.className="err-msg";em.textContent=f.err;d.appendChild(em)}
+  l.appendChild(d);
+})}
+
+function resUp(file,fid,tok,onP){return new Promise(function(res,rej){
+  // Small files: multipart (single request)
+  if(file.size<5*1024*1024){
+    var meta=JSON.stringify({name:file.name,parents:[fid]});var form=new FormData();
+    form.append("metadata",new Blob([meta],{type:"application/json"}));form.append("file",file);
+    var x=new XMLHttpRequest();x.open("POST","https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&supportsAllDrives=true");
+    x.setRequestHeader("Authorization","Bearer "+tok);
+    x.upload.onprogress=function(e){if(e.lengthComputable&&onP)onP(e.loaded/e.total*100,e.loaded)};
+    x.onload=function(){if(x.status>=200&&x.status<300){try{res(JSON.parse(x.responseText).id)}catch(e){res(null)}}else rej(new Error("HTTP "+x.status))};
+    x.onerror=function(){rej(new Error("Network error"))};x.send(form);return;
+  }
+  // Large files: resumable
+  var xi=new XMLHttpRequest();xi.open("POST","https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&supportsAllDrives=true");
+  xi.setRequestHeader("Authorization","Bearer "+tok);xi.setRequestHeader("Content-Type","application/json; charset=UTF-8");
+  xi.setRequestHeader("X-Upload-Content-Type",file.type||"application/octet-stream");xi.setRequestHeader("X-Upload-Content-Length",file.size);
+  xi.onload=function(){if(xi.status!==200){rej(new Error("Init:"+xi.status));return}var url=xi.getResponseHeader("Location");if(!url){rej(new Error("No URL"));return}
+    if(file.size<=CS){var x2=new XMLHttpRequest();x2.open("PUT",url);x2.setRequestHeader("Content-Type",file.type||"application/octet-stream");x2.upload.onprogress=function(e){if(e.lengthComputable&&onP)onP(e.loaded/e.total*100,e.loaded)};x2.onload=function(){if(x2.status>=200&&x2.status<300){try{res(JSON.parse(x2.responseText).id)}catch(e){res(null)}}else rej(new Error("Upload:"+x2.status))};x2.onerror=function(){rej(new Error("Net"))};x2.send(file)}
+    else{var off=0;function nc(){var end=Math.min(off+CS,file.size);var ch=file.slice(off,end);var last=end===file.size;var xc=new XMLHttpRequest();xc.open("PUT",url);xc.setRequestHeader("Content-Range","bytes "+off+"-"+(end-1)+"/"+(last?file.size:"*"));xc.upload.onprogress=function(e){if(e.lengthComputable&&onP)onP((off+e.loaded)/file.size*100,off+e.loaded)};xc.onload=function(){if(xc.status===200||xc.status===201){try{res(JSON.parse(xc.responseText).id)}catch(e){res(null)}}else if(xc.status===308){off=end;nc()}else rej(new Error("Chunk:"+xc.status))};xc.onerror=function(){rej(new Error("Net@"+off))};xc.send(ch)}nc()}
+  };xi.onerror=function(){rej(new Error("Net init"))};xi.send(JSON.stringify({name:file.name,parents:[fid]}))
+})}
+
+function go(){if(!U||!U.token){if(window.opener)window.opener.postMessage({type:"error",message:"No credentials"},"*");return}
+var idx=0,res=[];
 function next(){
-if(idx>=FI.length){document.getElementById("sum").classList.remove("hidden");var dc=res.filter(function(r){return r.ok}).length;var fc=res.filter(function(r){return!r.ok}).length;document.getElementById("sumT").textContent=dc+" file"+(dc>1?"s":"")+" uploaded"+(fc>0?", "+fc+" failed":"");document.getElementById("sumS").textContent="Closing in 5 seconds...";if(window.opener){window.opener.postMessage({type:"complete",results:res},"*");setTimeout(function(){window.close()},5000)}return}
-var it=FI[idx];if(!it.file){res.push({ok:false,filename:it.name,error:"File not received"});render();idx++;next();return}
-it.status="uploading";it.progress=0;var t0=Date.now();render();
-
-// Small files (< 5MB): use multipart upload (simpler, one request)
-if(it.file.size<5*1024*1024){
-  var metadata=JSON.stringify({name:it.file.name,parents:[U.folderId]});
-  var form=new FormData();
-  form.append("metadata",new Blob([metadata],{type:"application/json"}));
-  form.append("file",it.file);
-  var xhr=new XMLHttpRequest();
-  xhr.open("POST","https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&supportsAllDrives=true");
-  xhr.setRequestHeader("Authorization","Bearer "+U.token);
-  xhr.upload.onprogress=function(e){if(e.lengthComputable){it.progress=e.loaded/e.total*100;var el=(Date.now()-t0)/1000;it.speed=el>0?e.loaded/el:0;render()}};
-  xhr.onload=function(){
-    if(xhr.status>=200&&xhr.status<300){try{var r=JSON.parse(xhr.responseText);it.status="done";it.progress=100;it.fid=r.id;res.push({ok:true,filename:it.name,driveLink:"https://drive.google.com/file/d/"+r.id+"/view",driveFileId:r.id})}catch(e){it.status="error";res.push({ok:false,filename:it.name,error:"Parse error"})}}
-    else{it.status="error";res.push({ok:false,filename:it.name,error:"HTTP "+xhr.status})}
-    render();idx++;next()};
-  xhr.onerror=function(){it.status="error";res.push({ok:false,filename:it.name,error:"Network error"});render();idx++;next()};
-  xhr.send(form);
-  return;
+  if(idx>=FI.length){
+    document.getElementById("sm").classList.remove("h");
+    var dc=res.filter(function(r){return r.ok}).length,fc=res.filter(function(r){return!r.ok}).length;
+    document.getElementById("sT").textContent=dc+" file"+(dc>1?"s":"")+" uploaded"+(fc?", "+fc+" failed":"");
+    document.getElementById("sS").textContent="Closing in 5 seconds...";
+    if(window.opener){window.opener.postMessage({type:"complete",results:res},"*");setTimeout(function(){window.close()},5000)}
+    return;
+  }
+  var it=FI[idx];
+  if(!it.file){it.st="err";it.err="File not received";res.push({ok:false,filename:it.name,error:it.err});render();idx++;next();return}
+  it.st="up";it.p=0;var t0=Date.now();render();
+  resUp(it.file,U.folderId,U.token,function(p,b){it.p=p;var el=(Date.now()-t0)/1000;it.sp=el>0?b/el:0;render()})
+  .then(function(fid){it.st="ok";it.p=100;it.fid=fid;res.push({ok:true,filename:it.name,driveLink:fid?"https://drive.google.com/file/d/"+fid+"/view":"",driveFileId:fid});render();idx++;next()})
+  .catch(function(err){it.st="err";it.err=err.message;res.push({ok:false,filename:it.name,error:err.message});render();idx++;next()});
 }
-
-// Large files: resumable upload
-resUp(it.file,U.folderId,U.token,function(p,b){it.progress=p;var el=(Date.now()-t0)/1000;it.speed=el>0?b/el:0;render()}).then(function(fid){it.status="done";it.progress=100;it.fid=fid;res.push({ok:true,filename:it.name,driveLink:fid?"https://drive.google.com/file/d/"+fid+"/view":"",driveFileId:fid});render();idx++;next()}).catch(function(err){it.status="error";res.push({ok:false,filename:it.name,error:err.message});render();idx++;next()})
-}
-next()
+next();
 }
 </script>
 </body>
